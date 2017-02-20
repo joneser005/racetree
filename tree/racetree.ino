@@ -1,7 +1,7 @@
 //#define DEBUG
 
 // Leo controls the signal board
-// Mega controls the remote b/c we may end up needing a lot of inputs.....
+// Mega controls the remote b/c we may end up needing a lot of inputs (and that's all I had on-hand - an Uno/Leo should be finewith a few pin changes.....
 
 // Listen to the boards:
 // cu -l /dev/ttyACM0 -s 115200

@@ -1,5 +1,5 @@
 // Leo controls the signal board
-// Mega controls the remote b/c we may end up needing a lot of inputs.....
+// Mega controls the remote b/c we may end up needing a lot of inputs, though an Uno/Leo should work with some pin changes.....
 #define IS_REMOTE_CTRL 1
 // Listen to the boards:
 // cu -l /dev/ttyACM0 -s 115200
