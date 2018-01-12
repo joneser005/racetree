@@ -9,7 +9,7 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <SD.h>
-#include <TMRpcm.h>
+#include <TMRpcm.h>  /* https://github.com/TMRh20/TMRpcm/wiki */
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
@@ -99,6 +99,7 @@ void play(uint8_t s) {
   char * pfn = (char *) fname.c_str();
   tmrpcm.play(pfn);
   while (tmrpcm.isPlaying()); // don't do anything else while playing wavs (prevents attempts to play a 2nd wav simultaneously)
+  tmrpcm.disable();
 }
 
 void setup() {
@@ -143,6 +144,7 @@ void setup() {
 // when the remote sends us messages.
   pending_state = STATE_PWRON | MODE_PWD | WAVBANK_1;
   state = STATE_UNDEF;
+  tmrpcm.disable();
 }
 
 void heartbeat();
