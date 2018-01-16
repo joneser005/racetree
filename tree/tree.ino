@@ -1,7 +1,7 @@
 //#define DEBUG
 
 // Leo controls the signal board
-// Mega controls the remote b/c we may end up needing a lot of inputs (and that's all I had on-hand - an Uno/Leo should be finewith a few pin changes.....
+// Mega controls the remote (all I had on-hand - an Uno/Leo should be finewith a few pin changes.....)
 
 // Listen to the boards:
 // cu -l /dev/ttyACM0 -s 115200
@@ -15,8 +15,6 @@
 #include "RF24.h"
 #include "printf.h"
 #include "ExternDefs.h"
-
-void radioInterrupt();
 
 #define COLOR_POWERON 0,0,180
 #define COLOR_READY 180,180,0
@@ -74,6 +72,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(14, PIN_LED_DATA, NEO_GRB + NEO_KHZ8
 /***** Radio setup                                        */
 RF24 radio(PIN_RADIO_CE, PIN_RADIO_CS);
 const uint64_t pipe = 0xE8E8F0F0E1LL; // must match remote
+void radioInterrupt();
 
 // HACK: Convolution invocation.  Refactor this if you ever have to come back this way.
 void play(uint8_t s) {
@@ -104,23 +103,17 @@ void play(uint8_t s) {
 
 void setup() {
   Serial.begin(115200);
-
+//  delay(10000);
   printf_begin();
 
+/***** Lights ********************************************************************/
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
 
-  tmrpcm.speakerPin = PIN_SPEAKER;
-
-  /***** RF24 radio + serial monitor *****/
-//  printf("RF24 init\r\n");
+/***** Radio ********************************************************************/
+  printf("RF24 init\r\n");
   radio.begin();
-  // Set the PA Level low to prevent power supply related issues since this is a
-  // getting_started sketch, and the likelihood of close proximity of the devices. RF24_PA_MAX is default.
-  radio.setPALevel(RF24_PA_HIGH); // TODO: Test range to ensure we are giving the radio enough power to function in the gym setting.
-                                  //       Four levels: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH and RF24_PA_MAX
-                                  // This only affects ACK transmissions.
-                                  // TODO: Re-read up on details behind ACK reception on remote side.  Ergo, any negative consequences to if it doesn't receive expected acks? 
+  radio.setPALevel(RF24_PA_HIGH);
   radio.enableAckPayload(); // send back the old state on assignment; current state on query
   radio.openReadingPipe(1, pipe);
   radio.startListening();
@@ -129,22 +122,20 @@ void setup() {
   radio.printDetails();
 #endif
 
+/***** SD/audio ********************************************************************/
+  tmrpcm.speakerPin = PIN_SPEAKER;
   if (!SD.begin(PIN_SD_CS)) {  // see if the card is present and can be initialized:
-#ifdef DEBUG
     printf("SD fail\r\n");  
-#endif
   } else {
-#ifdef DEBUG
     printf("SD OK\r\n");  
-#endif
     tmrpcm.setVolume(5);
   }
-
+  tmrpcm.disable();  // Sets pin to low for worry-free DJ experience
+  
 // At poweron, we make a few assumptions.  These will be corrected
 // when the remote sends us messages.
   pending_state = STATE_PWRON | MODE_PWD | WAVBANK_1;
   state = STATE_UNDEF;
-  tmrpcm.disable();
 }
 
 void heartbeat();
@@ -342,6 +333,7 @@ void heartbeat() {
     if (ledState == LOW) {
       ledState = HIGH;
       interval = intervalHigh;
+      printf(".");
     } else {
       ledState = LOW;
       interval = intervalLow;
